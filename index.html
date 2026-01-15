@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SmartLight Hub — Demo Semaforo</title>
+  <meta name="description" content="Demo interattiva del semaforo SmartLight Hub — auto/manual, richiesta pedone, transizioni innovative." />
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <img src="logo-white.png" alt="SmartLight Hub" class="logo logo-dark" />
+        <img src="logo-black.png" alt="SmartLight Hub" class="logo logo-dark" />
+        <div class="brand-text">
+          <h1>SmartLight Hub</h1>
+          <p class="slogan">La sicurezza parte da un semaforo intelligente</p>
+        </div>
+      </div>
+
+      <nav aria-label="Principale">
+        <ul class="nav">
+          <li><a href="#demo">Demo</a></li>
+          <li><a href="#how">Come funziona</a></li>
+          <li><a href="#contact">Contatti</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="demo" class="panel demo-panel" aria-labelledby="demo-title">
+      <h2 id="demo-title">Demo interattiva del semaforo</h2>
+
+      <div class="demo-grid">
+        <!-- Semaforo -->
+        <div class="traffic-wrap" aria-hidden="false">
+          <div class="traffic-shell" id="trafficShell" role="img" aria-label="Semaforo intelligente">
+            <div class="traffic-top"></div>
+            <div class="lights" id="lights" tabindex="0" aria-live="polite">
+              <div class="light light-red" id="light-red" data-color="red" aria-label="rosso"></div>
+              <div class="light light-amber" id="light-amber" data-color="amber" aria-label="giallo"></div>
+              <div class="light light-green" id="light-green" data-color="green" aria-label="verde"></div>
+            </div>
+            <div class="traffic-base"></div>
+          </div>
+
+          <div class="traffic-info">
+            <div class="status">
+              Stato: <span id="statusText">Auto</span>
+            </div>
+            <div class="active-color" id="activeColor">—</div>
+          </div>
+        </div>
+
+        <!-- Controlli -->
+        <aside class="controls" aria-labelledby="controls-title">
+          <h3 id="controls-title">Controlli</h3>
+
+          <div class="mode">
+            <label><input type="radio" name="mode" value="auto" checked> Auto</label>
+            <label><input type="radio" name="mode" value="manual"> Manual</label>
+          </div>
+
+          <div class="manual-controls" id="manualControls" hidden>
+            <button id="btnRed" class="btn">Rosso</button>
+            <button id="btnAmber" class="btn">Giallo</button>
+            <button id="btnGreen" class="btn">Verde</button>
+          </div>
+
+          <div class="pedestrian">
+            <button id="pedButton" class="btn ped">Richiesta Pedone</button>
+            <div class="ped-info" id="pedInfo">Nessuna richiesta</div>
+          </div>
+
+          <div class="timers">
+            <label>Durata Verde (s): <span id="durGreenLabel">8</span></label>
+            <input id="durGreen" type="range" min="3" max="20" value="8">
+            <label>Durata Giallo (s): <span id="durAmberLabel">2</span></label>
+            <input id="durAmber" type="range" min="1" max="6" value="2">
+            <label>Durata Rosso (s): <span id="durRedLabel">6</span></label>
+            <input id="durRed" type="range" min="3" max="30" value="6">
+          </div>
+
+          <div class="extras">
+            <label><input type="checkbox" id="syncAccent" checked> Cambia accento pagina</label>
+            <label><input type="checkbox" id="sound" > Suono segnale</label>
+          </div>
+
+          <div class="log">
+            <h4>Log</h4>
+            <div id="logBox" class="log-box" aria-live="polite"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="how" class="panel">
+      <h2>Come funziona (sintesi)</h2>
+      <ol>
+        <li>Layer locale rileva traffico e pedoni.</li>
+        <li>Logica Auto/Manual può essere gestita dall’operatore.</li>
+        <li>IA (suggerita) ottimizza i tempi e predice le code; la manualità permette override o profili speciali.</li>
+      </ol>
+      <p class="muted">La demo mostra l’interazione tra automazione, IA (modello suggerito) e intervento umano.</p>
+    </section>
+
+    <section id="contact" class="panel">
+      <h2>Contatti</h2>
+      <p>Per demo, partnership o richieste: <a href="mailto:info@smartlighthub.example">info@smartlighthub.example</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <small>© SmartLight Hub — Demo semaforo</small>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

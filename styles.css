@@ -1,0 +1,96 @@
+:root{
+  --traffic-red: #b9292d;
+  --traffic-amber: #ffd134;
+  --traffic-green: #2f8249;
+  --bg: #f7f9fb;
+  --card: #ffffff;
+  --text: #0f1724;
+  --muted: #5b6770;
+  --glass: rgba(255,255,255,0.06);
+  --maxw: 1100px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: linear-gradient(180deg,#fbfdff,#f1f6f9);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+
+.container{width:92%; max-width:var(--maxw); margin:0 auto; padding:2rem 0}
+
+/* Header */
+.site-header{
+  background:transparent;
+  padding:1rem 0;
+}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.brand{display:flex;align-items:center;gap:.75rem}
+.logo{height:42px;width:auto;display:block}
+.logo-dark{display:none}
+.brand-text h1{margin:0;font-size:1.2rem}
+.slogan{margin:0;font-size:0.85rem;color:var(--muted)}
+
+/* Nav */
+.nav{list-style:none;display:flex;gap:1rem;margin:0;padding:0}
+.nav a{text-decoration:none;color:var(--muted);font-weight:600}
+.nav a:hover{color:var(--text)}
+
+/* Panels */
+.panel{background:var(--card);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;box-shadow:0 6px 24px rgba(15,23,36,0.06)}
+.demo-grid{display:grid;grid-template-columns:360px 1fr;gap:1rem;align-items:start}
+@media (max-width:880px){.demo-grid{grid-template-columns:1fr;}}
+/* Traffic visual */
+.traffic-wrap{display:flex;flex-direction:column;gap:.9rem;align-items:center}
+.traffic-shell{width:160px;border-radius:14px;padding:12px;background:linear-gradient(180deg,#111217,#0b0d10);box-shadow: 0 18px 40px rgba(15,23,36,0.35);position:relative}
+.traffic-top{height:10px;background:linear-gradient(180deg,#222,#111);border-radius:6px;margin-bottom:8px}
+.traffic-base{height:18px;background:linear-gradient(180deg,#111,#0c0c0c);border-radius:6px;margin-top:8px}
+.lights{display:flex;flex-direction:column;gap:10px;align-items:center;outline:none}
+.light{width:76px;height:76px;border-radius:50%;background:#222;box-shadow: inset 0 -8px 14px rgba(0,0,0,0.6);transition:all .45s cubic-bezier(.2,.9,.3,1);position:relative}
+.light::after{content:'';position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 10px 36px rgba(255,255,255,0.02)}
+.light.red{background:linear-gradient(180deg,#370404,var(--traffic-red));filter:grayscale(100%) brightness(.6)}
+.light.amber{background:linear-gradient(180deg,#3d2b00,var(--traffic-amber));filter:grayscale(100%) brightness(.6)}
+.light.green{background:linear-gradient(180deg,#04311a,var(--traffic-green));filter:grayscale(100%) brightness(.6)}
+
+/* active glow */
+.light.active{filter:none;transform:scale(1.03);box-shadow:0 0 28px rgba(0,0,0,0.12), 0 0 36px currentColor; animation:softPulse 1.6s infinite ease-in-out}
+.light.active.red{color:var(--traffic-red)}
+.light.active.amber{color:var(--traffic-amber)}
+.light.active.green{color:var(--traffic-green)}
+
+@keyframes softPulse{
+  0% {transform:scale(1.03)}
+  50% {transform:scale(1.08)}
+  100% {transform:scale(1.03)}
+}
+
+/* Traffic accent panel */
+.traffic-info{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted)}
+.status{font-weight:600}
+.active-color{width:38px;height:18px;border-radius:6px;background:transparent;border:2px solid #eee}
+
+/* Controls */
+.controls{padding:1rem;border-radius:10px;background:linear-gradient(180deg,#ffffff,#fbfeff);box-shadow:0 8px 24px rgba(15,23,36,0.04)}
+.controls h3{margin-top:0}
+.mode label{display:inline-flex;gap:.4rem;margin-right:1rem}
+.manual-controls{display:flex;gap:.5rem;margin:.6rem 0}
+.btn{padding:.5rem .8rem;border-radius:8px;border:0;cursor:pointer;background:#eef3f6;color:var(--text);font-weight:700;box-shadow: 0 6px 12px rgba(15,23,36,0.06)}
+.btn:hover{transform:translateY(-2px)}
+.btn.ped{background:linear-gradient(90deg,var(--traffic-amber),var(--traffic-green));color:#072214}
+.timers label{display:block;font-size:.9rem;color:var(--muted);margin-top:.6rem}
+.timers input[type="range"]{width:100%}
+.extras label{display:block;margin-top:.6rem;color:var(--muted)}
+.log{margin-top:0.8rem}
+.log-box{height:140px;overflow:auto;padding:.6rem;border-radius:8px;background:#f6f9fb;border:1px solid #eef2f5;color:var(--muted);font-size:.9rem}
+
+/* Footer */
+.site-footer{text-align:center;padding:1rem 0;color:var(--muted);font-size:.9rem}
+
+/* Accent color switch */
+.body-accent-red{--accent:var(--traffic-red)}
+.body-accent-amber{--accent:var(--traffic-amber)}
+.body-accent-green{--accent:var(--traffic-green)}
+/* apply accent to CTA or headers if needed */
