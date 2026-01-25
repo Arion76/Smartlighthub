@@ -1,120 +1,224 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SmartLight Hub — Demo Semaforo</title>
-  <meta name="description" content="Demo interattiva del semaforo SmartLight Hub — auto/manual, richiesta pedone, transizioni innovative." />
+  <title>SmartLight Hub — Dashboard V4</title>
+  
   <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+
   <header class="site-header">
     <div class="container header-inner">
       <div class="brand">
-        <img src="logo-white.png" alt="SmartLight Hub" class="logo logo-dark" />
-        <img src="logo-black.png" alt="SmartLight Hub" class="logo logo-dark" />
-        <div class="brand-text">
-          <h1>SmartLight Hub</h1>
-          <p class="slogan">La sicurezza parte da un semaforo intelligente</p>
-        </div>
+        <div class="logo-icon"><i class="fa-solid fa-traffic-light"></i></div>
+        <div class="brand-text">SMARTLIGHT HUB</div>
       </div>
-
-      <nav aria-label="Principale">
-        <ul class="nav">
-          <li><a href="#demo">Demo</a></li>
-          <li><a href="#how">Come funziona</a></li>
-          <li><a href="#contact">Contatti</a></li>
-        </ul>
+      <nav class="main-nav">
+        <ul>
+          <li><a href="#">Dashboard</a></li>
+          <li><a href="#control-panel">Traffico</a></li>
+          <li><a href="#analytics">Statistiche</a></li>
+          </ul>
       </nav>
+      <div class="header-action">
+        <a href="#simulation" class="btn btn-red">Accesso Sistema</a>
+      </div>
     </div>
   </header>
 
-  <main class="container">
-    <section id="demo" class="panel demo-panel" aria-labelledby="demo-title">
-      <h2 id="demo-title">Demo interattiva del semaforo</h2>
+  <section class="hero-section">
+    <div class="hero-bg-overlay"></div>
+    <div class="container hero-content-centered">
+      <div class="hero-text-full">
+        <h1>SMARTLIGHT<br>HUB</h1>
+        <p>Vivi il futuro della mobilità urbana con la nostra simulazione intelligente. Adattamento in tempo reale, priorità pedonale e controlli operatore professionali in un'unica dashboard.</p>
+        <div class="hero-buttons">
+          <a href="#simulation" class="btn btn-red-outline"><i class="fa-solid fa-rocket"></i> Avvia Demo</a>
+          <a href="#control-panel" class="btn btn-yellow"><i class="fa-solid fa-sliders"></i> Pannello Controllo</a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-      <div class="demo-grid">
-        <!-- Semaforo -->
-        <div class="traffic-wrap" aria-hidden="false">
-          <div class="traffic-shell" id="trafficShell" role="img" aria-label="Semaforo intelligente">
-            <div class="traffic-top"></div>
-            <div class="lights" id="lights" tabindex="0" aria-live="polite">
-              <div class="light light-red" id="light-red" data-color="red" aria-label="rosso"></div>
-              <div class="light light-amber" id="light-amber" data-color="amber" aria-label="giallo"></div>
-              <div class="light light-green" id="light-green" data-color="green" aria-label="verde"></div>
-            </div>
-            <div class="traffic-base"></div>
+  <section id="control-panel" class="section-light controls-section">
+    <div class="container">
+      <div class="cards-grid">
+        
+        <div class="control-card">
+          <div class="card-icon icon-red"><i class="fa-solid fa-gear"></i></div>
+          <h3>Modalità Sistema</h3>
+          <p>Scegli tra cicli autonomi guidati dall'IA o override manuale diretto.</p>
+          <div class="mode-switch-group">
+            <label class="mode-btn">
+              <input type="radio" name="mode" value="auto" checked>
+              <span class="btn-toggle">Auto</span>
+            </label>
+            <label class="mode-btn">
+              <input type="radio" name="mode" value="manual">
+              <span class="btn-toggle">Manuale</span>
+            </label>
           </div>
-
-          <div class="traffic-info">
-            <div class="status">
-              Stato: <span id="statusText">Auto</span>
-            </div>
-            <div class="active-color" id="activeColor">—</div>
+          <div id="manualControls" class="manual-buttons hidden">
+            <button id="btnRed" class="btn-phase red">R</button>
+            <button id="btnAmber" class="btn-phase amber">G</button>
+            <button id="btnGreen" class="btn-phase green">V</button>
           </div>
         </div>
 
-        <!-- Controlli -->
-        <aside class="controls" aria-labelledby="controls-title">
-          <h3 id="controls-title">Controlli</h3>
-
-          <div class="mode">
-            <label><input type="radio" name="mode" value="auto" checked> Auto</label>
-            <label><input type="radio" name="mode" value="manual"> Manual</label>
+        <div class="control-card">
+          <div class="control-card-header">
+             <div class="card-icon icon-red"><i class="fa-regular fa-clock"></i></div>
+             <h3>Temporizzazione</h3>
           </div>
-
-          <div class="manual-controls" id="manualControls" hidden>
-            <button id="btnRed" class="btn">Rosso</button>
-            <button id="btnAmber" class="btn">Giallo</button>
-            <button id="btnGreen" class="btn">Verde</button>
+          <p>Regola la durata del verde per ottimizzare il flusso in base alla densità.</p>
+          <div class="slider-container">
+            <label>Durata Verde: <span id="durGreenLabel">8</span>s</label>
+            <input id="durGreen" type="range" min="3" max="20" value="8" class="range-slider">
           </div>
+        </div>
 
-          <div class="pedestrian">
-            <button id="pedButton" class="btn ped">Richiesta Pedone</button>
-            <div class="ped-info" id="pedInfo">Nessuna richiesta</div>
-          </div>
+        <div class="control-card">
+          <div class="card-icon icon-red"><i class="fa-solid fa-person-walking"></i></div>
+          <h3>Richiesta Pedone</h3>
+          <p>Simula la pressione del pulsante per attivare la priorità pedonale.</p>
+          <button id="pedButton" class="btn btn-green-solid">Richiedi Attraversamento</button>
+          <div id="pedInfo" class="ped-status">Nessuna richiesta</div>
+        </div>
 
-          <div class="timers">
-            <label>Durata Verde (s): <span id="durGreenLabel">8</span></label>
-            <input id="durGreen" type="range" min="3" max="20" value="8">
-            <label>Durata Giallo (s): <span id="durAmberLabel">2</span></label>
-            <input id="durAmber" type="range" min="1" max="6" value="2">
-            <label>Durata Rosso (s): <span id="durRedLabel">6</span></label>
-            <input id="durRed" type="range" min="3" max="30" value="6">
-          </div>
+        <div class="control-card">
+          <div class="card-icon icon-red"><i class="fa-solid fa-terminal"></i></div>
+          <h3>Log di Sistema</h3>
+          <p>Monitora gli eventi in tempo reale per i cambiamenti di segnale e hardware.</p>
+          <button onclick="document.getElementById('logBox').scrollIntoView({behavior: 'smooth'})" class="btn btn-outline-red">Vedi Log Completi</button>
+        </div>
 
-          <div class="extras">
-            <label><input type="checkbox" id="syncAccent" checked> Cambia accento pagina</label>
-            <label><input type="checkbox" id="sound" > Suono segnale</label>
-          </div>
-
-          <div class="log">
-            <h4>Log</h4>
-            <div id="logBox" class="log-box" aria-live="polite"></div>
-          </div>
-        </aside>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="how" class="panel">
-      <h2>Come funziona (sintesi)</h2>
-      <ol>
-        <li>Layer locale rileva traffico e pedoni.</li>
-        <li>Logica Auto/Manual può essere gestita dall’operatore.</li>
-        <li>IA (suggerita) ottimizza i tempi e predice le code; la manualità permette override o profili speciali.</li>
-      </ol>
-      <p class="muted">La demo mostra l’interazione tra automazione, IA (modello suggerito) e intervento umano.</p>
-    </section>
+  <section id="simulation" class="section-dark simulation-container">
+    <div class="container">
+      <div class="sim-box">
+        
+        <div class="sim-visual">
+          <div class="traffic-shell" id="trafficShell">
+            <div class="traffic-top"></div>
+            <div class="lights" id="lights">
+              <div class="light red" id="light-red"></div>
+              <div class="light amber" id="light-amber"></div>
+              <div class="light green" id="light-green"></div>
+            </div>
+            <div class="traffic-base"></div>
+          </div>
+        </div>
 
-    <section id="contact" class="panel">
-      <h2>Contatti</h2>
-      <p>Per demo, partnership o richieste: <a href="mailto:info@smartlighthub.example">info@smartlighthub.example</a></p>
-    </section>
-  </main>
+        <div class="sim-data">
+          <h2 class="sim-title">SIMULAZIONE LIVE</h2>
+          <p class="sim-desc">Visualizzazione sincronizzata in tempo reale. Il sistema monitora la domanda pedonale e il flusso veicolare.</p>
+          
+          <div class="sim-metrics">
+            <div class="metric-box">
+              <span class="metric-label">FASE CORRENTE</span>
+              <span class="metric-value text-red" id="phaseDisplay">Stop (Rosso)</span>
+            </div>
+            <div class="metric-box">
+              <span class="metric-label">TEMPO RIMANENTE</span>
+              <span class="metric-value" id="timerDisplay">--</span>
+            </div>
+          </div>
+
+          <div class="sim-actions">
+            <span class="sim-note">Premi SPAZIO per Override di Emergenza</span>
+          </div>
+          
+          <div class="sim-logs">
+             <h4>Live Events:</h4>
+             <div id="logBox" class="log-scroll"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="analytics" class="section-light features-section">
+    <div class="container">
+      <div class="section-header-center">
+        <h2>SMART INFRASTRUCTURE FEATURES</h2>
+        <p>Strumenti completi per la gestione moderna.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-chart-line"></i></div><h4>Adaptive Timing</h4><p>Algoritmi AI per regolazione dinamica.</p></div>
+        <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-wrench"></i></div><h4>Manual Override</h4><p>Controllo operatore per emergenze.</p></div>
+        <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-user-shield"></i></div><h4>Pedestrian Priority</h4><p>Integrazione sicurezza pedonale.</p></div>
+        <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-list-check"></i></div><h4>Real-time Logs</h4><p>Auditing dettagliato eventi.</p></div>
+        <div class="feat-card"><div class="feat-icon"><i class="fa-solid fa-mobile-screen"></i></div><h4>Full Responsiveness</h4><p>Ottimizzato per tutti i dispositivi.</p></div>
+        <div class="feat-card"><div class="feat-icon"><i class="fa-brands fa-accessible-icon"></i></div><h4>A11y Standards</h4><p>Accessibilità nativa.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-dark stats-strip">
+    <div class="container stats-flex">
+      <div class="stat-item"><h3 class="text-yellow" id="statMode">Automatic</h3><span>MODALITÀ SISTEMA</span></div>
+      <div class="stat-item"><h3 class="text-yellow">Fase 4/6</h3><span>CICLO ATTIVO</span></div>
+      <div class="stat-item"><h3 class="text-yellow" id="statRequests">0</h3><span>RICHIESTE IN CODA</span></div>
+      <div class="stat-item"><h3 class="text-yellow">99.9%</h3><span>UPTIME STATUS</span></div>
+    </div>
+  </section>
+
+  <section class="section-light how-section">
+    <div class="container">
+      <h2 class="how-title">COME FUNZIONA</h2>
+      <div class="steps-container">
+        <div class="step"><div class="step-num">01</div><h4>Acquisizione Dati</h4><p>Sensori raccolgono dati in real-time.</p></div>
+        <div class="step"><div class="step-num">02</div><h4>Elaborazione Logica</h4><p>Calcolo timing ottimale o input manuale.</p></div>
+        <div class="step"><div class="step-num">03</div><h4>Esecuzione Segnale</h4><p>Comandi sincronizzati alle unità.</p></div>
+        <div class="step"><div class="step-num">04</div><h4>Analisi & Feedback</h4><p>Aggiornamento istantaneo metriche.</p></div>
+      </div>
+    </div>
+  </section>
 
   <footer class="site-footer">
-    <div class="container">
-      <small>© SmartLight Hub — Demo semaforo</small>
+    <div class="container footer-content">
+      <div class="footer-col brand-col">
+        <div class="brand"><i class="fa-solid fa-traffic-light icon-red"></i> SMARTLIGHT HUB</div>
+        <p>Pionieri nella gestione intelligente del traffico per le città di domani.</p>
+        <div class="socials">
+          <a href="#"><i class="fa-brands fa-facebook"></i></a>
+          <a href="#"><i class="fa-brands fa-twitter"></i></a>
+          <a href="#"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Accesso Rapido</h4>
+        <ul>
+          <li><a href="#">Control Dashboard</a></li>
+          <li><a href="#">Architettura Sistema</a></li>
+          <li><a href="#">Protocolli Pedonali</a></li>
+          <li><a href="#">Override Emergenza</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Hub Supporto</h4>
+        <ul class="contact-list">
+          <li><i class="fa-solid fa-location-dot"></i> Via Roma 123, Milano, MI 20121</li>
+          <li><i class="fa-solid fa-envelope"></i> supporto@smartlighthub.it</li>
+          <li><i class="fa-solid fa-phone"></i> +39 02 1234 5678</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container footer-bottom-centered">
+        <small>© 2026 SmartLight Hub. Tutti i diritti riservati.</small>
+      </div>
     </div>
   </footer>
 

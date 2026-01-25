@@ -1,195 +1,227 @@
-// script.js - demo semaforo SmartLight Hub
-// Note: semplice implementazione client-side per la demo.
-// Funzionalità: ciclo auto/manual, richiesta pedone, timers, log
+// === SmartLight Hub - Core Logic ===
 
-// Elementi
+// DOM Elements: Luci
 const lightRed = document.getElementById('light-red');
 const lightAmber = document.getElementById('light-amber');
 const lightGreen = document.getElementById('light-green');
-const statusText = document.getElementById('statusText');
-const activeColor = document.getElementById('activeColor');
+
+// DOM Elements: Interfaccia e Dati
+const phaseDisplay = document.getElementById('phaseDisplay');
+const timerDisplay = document.getElementById('timerDisplay');
 const logBox = document.getElementById('logBox');
 const pedButton = document.getElementById('pedButton');
 const pedInfo = document.getElementById('pedInfo');
-const modeRadios = document.querySelectorAll('input[name="mode"]');
 const manualControls = document.getElementById('manualControls');
+
+// DOM Elements: Statistiche
+const statMode = document.getElementById('statMode');
+const statRequests = document.getElementById('statRequests');
+
+// Inputs & Controlli
+const modeRadios = document.querySelectorAll('input[name="mode"]');
 const btnRed = document.getElementById('btnRed');
 const btnAmber = document.getElementById('btnAmber');
 const btnGreen = document.getElementById('btnGreen');
-const durGreen = document.getElementById('durGreen');
-const durAmber = document.getElementById('durAmber');
-const durRed = document.getElementById('durRed');
+const durGreenInput = document.getElementById('durGreen');
 const durGreenLabel = document.getElementById('durGreenLabel');
-const durAmberLabel = document.getElementById('durAmberLabel');
-const durRedLabel = document.getElementById('durRedLabel');
-const syncAccent = document.getElementById('syncAccent');
-const soundToggle = document.getElementById('sound');
 
-let mode = 'auto';
-let current = 'red'; // red | amber | green
+// Stato del Sistema
+let mode = 'auto'; // 'auto' | 'manual'
+let current = 'red';
 let timerHandle = null;
-let pedestrianQueue = []; // timestamps of requests
-
-// default durations (seconds)
+let countdownInterval = null;
+let pedestrianQueue = [];
 let durations = {
-  green: parseInt(durGreen.value),
-  amber: parseInt(durAmber.value),
-  red: parseInt(durRed.value)
+  green: parseInt(durGreenInput.value),
+  amber: 2,
+  red: 6
 };
 
-// simple audio (beep) for crossing start
+// --- AUDIO UTILITY (Beep) ---
 const beep = (() => {
-  try {
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
-    return (freq=880, dur=0.08) => {
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type='sine'; o.frequency.value = freq;
-      g.gain.value = 0.0001;
-      o.connect(g);
-      g.connect(ctx.destination);
-      o.start(0);
-      g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
-      setTimeout(()=>{ g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.02); o.stop(); }, dur*1000);
-    };
-  } catch(e){ return ()=>{} }
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        return (freq = 880, dur = 0.1) => {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.frequency.value = freq;
+            o.type = 'sine';
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.start();
+            g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + dur);
+            setTimeout(() => o.stop(), dur * 1000);
+        };
+    } catch (e) { return () => {}; }
 })();
 
-function log(msg){
-  const time = new Date().toLocaleTimeString();
-  const el = document.createElement('div');
-  el.textContent = `[${time}] ${msg}`;
-  logBox.prepend(el);
+// --- SYSTEM LOGGING ---
+function log(msg) {
+    const time = new Date().toLocaleTimeString();
+    const el = document.createElement('div');
+    el.innerText = `[${time}] ${msg}`;
+    logBox.prepend(el);
 }
 
-// Set active light visuals
-function setLight(color){
-  current = color;
-  [lightRed, lightAmber, lightGreen].forEach(el => el.classList.remove('active'));
-  if(color === 'red') lightRed.classList.add('active', 'red');
-  if(color === 'amber') lightAmber.classList.add('active', 'amber');
-  if(color === 'green') lightGreen.classList.add('active', 'green');
-
-  // status and page accent
-  statusText.textContent = mode === 'auto' ? 'Auto' : 'Manual';
-  activeColor.style.background = (color === 'red' ? getComputedStyle(document.documentElement).getPropertyValue('--traffic-red') :
-                                   color === 'amber' ? getComputedStyle(document.documentElement).getPropertyValue('--traffic-amber') :
-                                   getComputedStyle(document.documentElement).getPropertyValue('--traffic-green'));
-
-  if(syncAccent.checked){
-    document.body.classList.remove('body-accent-red','body-accent-amber','body-accent-green');
-    document.body.classList.add(color==='red'?'body-accent-red':color==='amber'?'body-accent-amber':'body-accent-green');
-  }
-}
-
-// Auto cycle (recursive)
-function startAutoCycle(){
-  clearTimeout(timerHandle);
-  mode = 'auto';
-  setLight('green'); // start with green for demo
-  log('Modalità Auto attivata. Avvio ciclo.');
-  autoStep('green');
-}
-
-function autoStep(state){
-  // check pedestrian queue: if people waiting, ensure a red soon to allow crossing
-  if(state === 'green'){
-    // if queue exists longer than threshold, shorten green
-    const hasPed = pedestrianQueue.length > 0;
-    const dur = hasPed ? Math.max(3, Math.round(durations.green * 0.6)) : durations.green;
-    log(`Green per ${dur}s${hasPed? ' (ridotto per richieste pedoni)':''}`);
-    setLight('green');
-    timerHandle = setTimeout(()=>autoStep('amber'), dur*1000);
-  } else if(state === 'amber'){
-    setLight('amber');
-    timerHandle = setTimeout(()=>autoStep('red'), durations.amber*1000);
-  } else if(state === 'red'){
-    setLight('red');
-    // allow pedestrians to cross if queued: simulate release
-    if(pedestrianQueue.length > 0){
-      // simulate cross: give audible feedback and clear queue
-      if(soundToggle.checked) beep(880,0.12);
-      log(`Permesso pedonale rilasciato a ${pedestrianQueue.length} richiesta/e`);
-      pedInfo.textContent = `Rilasciate ${pedestrianQueue.length} richieste`;
-      pedestrianQueue = [];
-      // keep red for configured duration + small buffer
-      timerHandle = setTimeout(()=>autoStep('green'), (durations.red+0.5)*1000);
+// --- LIGHT CONTROLLER ---
+// Gestisce l'accensione visiva e l'aggiornamento etichette
+function setLight(color, duration = 0) {
+    current = color;
+    // Reset classi active
+    [lightRed, lightAmber, lightGreen].forEach(l => l.classList.remove('active'));
+    
+    let label = '';
+    if (color === 'red') {
+        lightRed.classList.add('active');
+        label = 'Stop (Rosso)';
+        phaseDisplay.className = 'metric-value text-red';
+    } else if (color === 'amber') {
+        lightAmber.classList.add('active');
+        label = 'Attenzione (Giallo)';
+        phaseDisplay.className = 'metric-value text-yellow';
     } else {
-      timerHandle = setTimeout(()=>autoStep('green'), durations.red*1000);
+        lightGreen.classList.add('active');
+        label = 'Via Libera (Verde)';
+        phaseDisplay.className = 'metric-value text-green'; // Necessita .text-green in CSS o usa default
+        phaseDisplay.style.color = 'var(--accent-green)';
     }
-  }
+    
+    phaseDisplay.textContent = label;
+    
+    // Gestione Timer Countdown
+    if (duration > 0 && mode === 'auto') {
+        startCountdown(duration);
+    } else {
+        clearInterval(countdownInterval);
+        timerDisplay.textContent = '--';
+    }
 }
 
-// Manual overrides
-function setManual(color){
-  clearTimeout(timerHandle);
-  mode = 'manual';
-  setLight(color);
-  log(`Modalità Manual: impostato ${color.toUpperCase()}`);
-  // in manual we don't auto-change; user can change or re-enable auto
+function startCountdown(seconds) {
+    clearInterval(countdownInterval);
+    let left = seconds;
+    timerDisplay.textContent = `${left}s`;
+    
+    countdownInterval = setInterval(() => {
+        left--;
+        if (left >= 0) timerDisplay.textContent = `${left}s`;
+        else clearInterval(countdownInterval);
+    }, 1000);
 }
 
-// Pedestrian request
-pedButton.addEventListener('click', ()=>{
-  const ts = Date.now();
-  pedestrianQueue.push(ts);
-  pedInfo.textContent = `In coda: ${pedestrianQueue.length}`;
-  log('Richiesta pedone aggiunta');
-});
-
-// Mode switch
-modeRadios.forEach(r => r.addEventListener('change', (ev)=>{
-  if(ev.target.value === 'auto') startAutoCycle();
-  else {
+// --- AUTOMATIC CYCLE LOGIC ---
+function startAutoCycle() {
     clearTimeout(timerHandle);
-    mode = 'manual';
-    statusText.textContent = 'Manual';
-    manualControls.hidden = false;
-    log('Modalità Manual attivata');
-  }
-}));
-
-// Manual buttons
-btnRed.addEventListener('click', ()=> setManual('red'));
-btnAmber.addEventListener('click', ()=> setManual('amber'));
-btnGreen.addEventListener('click', ()=> setManual('green'));
-
-// Timers change
-[durGreen,durAmber,durRed].forEach(el=>{
-  el.addEventListener('input', ()=>{
-    durations.green = parseInt(durGreen.value);
-    durations.amber = parseInt(durAmber.value);
-    durations.red = parseInt(durRed.value);
-    durGreenLabel.textContent = durations.green;
-    durAmberLabel.textContent = durations.amber;
-    durRedLabel.textContent = durations.red;
-  });
-});
-
-// Keyboard support: space triggers pedestrian button; A toggles auto/manual
-document.addEventListener('keydown', (e)=>{
-  if(e.key === ' ') { e.preventDefault(); pedButton.classList.add('active'); pedButton.click(); setTimeout(()=>pedButton.classList.remove('active'),160); }
-  if(e.key.toLowerCase() === 'a') {
-    // toggle
-    const autoRadio = document.querySelector('input[name="mode"][value="auto"]');
-    const manualRadio = document.querySelector('input[name="mode"][value="manual"]');
-    if(mode === 'auto'){ manualRadio.checked = true; manualControls.hidden = false; mode = 'manual'; clearTimeout(timerHandle); log('Modalità Manual (toggle)'); }
-    else { autoRadio.checked = true; manualControls.hidden = true; startAutoCycle(); }
-  }
-});
-
-// Initial setup
-function init(){
-  // set initial classes based on mode
-  manualControls.hidden = true;
-  setLight(current);
-  durations.green = parseInt(durGreen.value);
-  durations.amber = parseInt(durAmber.value);
-  durations.red = parseInt(durRed.value);
-  durGreenLabel.textContent = durations.green;
-  durAmberLabel.textContent = durations.amber;
-  durRedLabel.textContent = durations.red;
-  startAutoCycle();
+    mode = 'auto';
+    statMode.textContent = 'Automatic';
+    statMode.classList.add('text-yellow');
+    statMode.style.color = ''; // Reset override manuale
+    manualControls.classList.add('hidden');
+    log('Sistema in AUTO. Ciclo avviato.');
+    autoStep('green');
 }
 
-init();
+function autoStep(nextPhase) {
+    if (mode !== 'auto') return;
+
+    if (nextPhase === 'green') {
+        // Logica Adattiva: Riduci verde se ci sono pedoni
+        const hasPed = pedestrianQueue.length > 0;
+        let d = durations.green;
+        
+        if (hasPed) {
+             d = Math.max(3, Math.round(d * 0.5)); 
+             log(`Verde ridotto a ${d}s per priorità pedonale.`);
+        }
+        
+        setLight('green', d);
+        timerHandle = setTimeout(() => autoStep('amber'), d * 1000);
+        
+    } else if (nextPhase === 'amber') {
+        setLight('amber', durations.amber);
+        timerHandle = setTimeout(() => autoStep('red'), durations.amber * 1000);
+        
+    } else if (nextPhase === 'red') {
+        setLight('red', durations.red);
+        
+        // Rilascio Pedonale durante il rosso
+        if (pedestrianQueue.length > 0) {
+            setTimeout(() => {
+                beep(880, 0.2); // Feedback sonoro
+                log(`PEDONI: ${pedestrianQueue.length} richieste servite.`);
+                pedestrianQueue = [];
+                updatePedInfo();
+            }, 1000);
+        }
+        
+        timerHandle = setTimeout(() => autoStep('green'), durations.red * 1000);
+    }
+}
+
+// --- MANUAL MODE LOGIC ---
+function setManualMode() {
+    clearTimeout(timerHandle);
+    clearInterval(countdownInterval);
+    mode = 'manual';
+    statMode.textContent = 'Manual Override';
+    statMode.classList.remove('text-yellow');
+    statMode.style.color = 'var(--accent-red)';
+    manualControls.classList.remove('hidden');
+    timerDisplay.textContent = 'MANUAL';
+    log('Sistema in MANUALE. Attendere input.');
+}
+
+// --- EVENT HANDLERS ---
+
+// Cambio Modalità
+modeRadios.forEach(r => {
+    r.addEventListener('change', (e) => {
+        if (e.target.value === 'auto') startAutoCycle();
+        else setManualMode();
+    });
+});
+
+// Bottoni Manuali
+btnRed.addEventListener('click', () => { setLight('red'); log('Manuale: Rosso impostato'); });
+btnAmber.addEventListener('click', () => { setLight('amber'); log('Manuale: Giallo impostato'); });
+btnGreen.addEventListener('click', () => { setLight('green'); log('Manuale: Verde impostato'); });
+
+// Slider Durata
+durGreenInput.addEventListener('input', (e) => {
+    durations.green = parseInt(e.target.value);
+    durGreenLabel.textContent = durations.green;
+});
+
+// Pedestrian Request Button
+function updatePedInfo() {
+    statRequests.textContent = pedestrianQueue.length;
+    pedInfo.textContent = pedestrianQueue.length > 0 
+        ? `${pedestrianQueue.length} richiesta/e in attesa` 
+        : 'Nessuna richiesta';
+    pedInfo.style.color = pedestrianQueue.length > 0 ? 'var(--accent-red)' : '#666';
+}
+
+pedButton.addEventListener('click', () => {
+    pedestrianQueue.push(Date.now());
+    updatePedInfo();
+    log('Nuova richiesta pedonale acquisita.');
+    // Semplice feedback visivo sul bottone
+    const originalText = pedButton.textContent;
+    pedButton.textContent = 'Richiesta Inviata!';
+    setTimeout(() => pedButton.textContent = originalText, 1000);
+});
+
+// Keyboard Shortcut (Spazio = Emergenza)
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+        e.preventDefault();
+        log('EMERGENCY OVERRIDE (Tastiera)');
+        setManualMode();
+        setLight('red');
+        // Aggiorna UI radio button
+        document.querySelector('input[value="manual"]').checked = true;
+    }
+});
+
+// Avvio Iniziale
+startAutoCycle();
