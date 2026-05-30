@@ -31,6 +31,8 @@ a { text-decoration: none; transition: 0.3s; }
 .header-inner { display: flex; justify-content: space-between; align-items: center; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-family: var(--font-header); font-size: 1.2rem; }
 .logo-icon { background: var(--accent-red); color: #fff; padding: 5px 8px; border-radius: 4px; }
+.brand-logo { height: 50px; width: auto; object-fit: contain; }
+.footer-logo { height: 60px; width: auto; object-fit: contain; }
 .main-nav ul { list-style: none; display: flex; gap: 25px; margin: 0; padding: 0; }
 .main-nav a { color: var(--text-dark); font-weight: 500; font-size: 0.9rem; }
 .main-nav a:hover { color: var(--accent-red); }
